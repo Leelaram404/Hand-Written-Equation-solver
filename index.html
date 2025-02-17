@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Draw Equation</title>
+  <style>
+    canvas {
+      border: 1px solid #000;
+      background-color: white;  /* White background for drawing */
+    }
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin-top: 20px;
+    }
+    #result {
+      font-size: 1.2em;
+      margin-top: 10px;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+  <h1>Draw Your Equation</h1>
+  <canvas id="drawCanvas" width="400" height="400"></canvas>
+  <br>
+  <button id="clearBtn">Clear</button>
+  <button id="predictBtn">Predict</button>
+  <p id="result"></p>
+  
+  <script>
+    const canvas = document.getElementById('drawCanvas');
+    const context = canvas.getContext('2d');
+    let drawing = false;
+    
+    // Set up drawing properties
+    context.lineWidth = 5;
+    context.lineCap = 'round';
+    context.strokeStyle = 'black';
+    
+    // Mouse events for drawing
+    canvas.addEventListener('mousedown', (e) => {
+      drawing = true;
+      context.beginPath();
+      context.moveTo(e.offsetX, e.offsetY);
+    });
+    
+    canvas.addEventListener('mousemove', (e) => {
+      if (drawing) {
+        context.lineTo(e.offsetX, e.offsetY);
+        context.stroke();
+      }
+    });
+    
+    canvas.addEventListener('mouseup', () => {
+      drawing = false;
+    });
+    
+    canvas.addEventListener('mouseleave', () => {
+      drawing = false;
+    });
+    
+    // Clear canvas
+    document.getElementById('clearBtn').addEventListener('click', () => {
+      context.clearRect(0, 0, canvas.width, canvas.height);
+    });
+    
+    // Send canvas image to Flask for prediction
+    document.getElementById('predictBtn').addEventListener('click', () => {
+      const dataURL = canvas.toDataURL();
+      fetch('/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ image: dataURL })
+      })
+      .then(response => response.json())
+      .then(data => {
+        document.getElementById('result').innerText = data.prediction;
+      })
+      .catch(error => {
+        console.error('Error:', error);
+      });
+    });
+  </script>
+</body>
+</html>
